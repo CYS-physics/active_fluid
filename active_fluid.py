@@ -262,24 +262,24 @@ class active_fluid:     # OOP
         return F
     
 def F_scan(N_iter,vu_init,vu_fin,N_v):
-    direc ='211121_FV/'
+    direc ='211122_FV/'
     os.makedirs(os.getcwd()+'/data/'+direc,exist_ok=True)
     
 
 
 
-    AF1 = active_fluid(N_ptcl=20000,amode='ABP',Fs = 10000)
+    AF1 = active_fluid(N_ptcl=20000,amode='ABP',Fs = 20000)
 
-    AF1.u = 5
+    AF1.u = 2
     # AF1.alpha = 1
     AF1.LX = 200
     AF1.LY = 200
     AF1.Dt = 0.1
     AF1.Dr = 0.1
-    AF1.R = 10
+    AF1.R = 3
     AF1.k = 1
     AF1.mu = 1
-    AF1.mup = 0.02/(AF1.N_ptcl/(AF1.LX*AF1.LY))
+#     AF1.mup = 0.02/(AF1.N_ptcl/(AF1.LX*AF1.LY))
     AF1.pmode='MF'
     AF1.potential='WCA'
 
