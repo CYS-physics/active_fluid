@@ -82,10 +82,13 @@ class active_fluid:     # OOP
         if (self.potential=='WCA'):
             r_0 = r_cut*2**(-1/6)
             
-            force = 4*self.k*(-12*r**(-13)/r_0**(-12)+6*r**(-7)/r_0**(-6))*(np.abs(r)<r_cut)
+            force = 4*self.k*(-12*r**(-13)/r_0**(-12)+6*r**(-7)/r_0**(-6))*(r<r_cut)
         # cone potential
+        elif (self.potential=='harmonic'):
+            force = -self.k*(r_cut-r)*(r<r_cut)
+        
         else:
-            force = self.k*(np.abs(r)<r_cut)
+            force = -self.k*(np.abs(r)<r_cut)
         
         
         return force*(rx/r,ry/r)
@@ -189,9 +192,10 @@ class active_fluid:     # OOP
         return traj
     
     def initialize(self):
+        self.set_zero()
         mup = self.mup
         self.mup = 0
-        for _ in range(50000):
+        for _ in range(20000):
             self.time_evolve()
         self.mup = mup
             
@@ -262,26 +266,26 @@ class active_fluid:     # OOP
         return F
     
 def F_scan(N_iter,vu_init,vu_fin,N_v):
-    direc ='211124_1_FV/'
+    direc ='211124_2_FV/'
     os.makedirs(os.getcwd()+'/data/'+direc,exist_ok=True)
     
 
 
 
-    AF1 = active_fluid(N_ptcl=20000,amode='ABP',Fs = 4000)
+    AF1 = active_fluid(N_ptcl=10000,amode='ABP',Fs = 1000)
 
-    AF1.u = 1
+    AF1.u = 10
     # AF1.alpha = 1
     AF1.LX = 500
     AF1.LY = 500
-    AF1.Dt = 0.001
-    AF1.Dr = 0.01
-    AF1.R = 15
-    AF1.k = 1
+    AF1.Dt = 0.05
+    AF1.Dr = 0.5
+    AF1.R = 20
+    AF1.k = 500
     AF1.mu = 1
 #     AF1.mup = 0.02/(AF1.N_ptcl/(AF1.LX*AF1.LY))
     AF1.pmode='MF'
-    AF1.potential='WCA'
+    AF1.potential='harmonic'
 
     
     v_axis = np.linspace(vu_init*AF1.u,vu_fin*AF1.u,N_v)
