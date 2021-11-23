@@ -272,16 +272,16 @@ def F_scan(N_iter,vu_init,vu_fin,N_v):
 
 
 
-    AF1 = active_fluid(N_ptcl=10000,amode='ABP',Fs = 1000)
+    AF1 = active_fluid(N_ptcl=10000,amode='ABP',Fs = 2000)
 
     AF1.u = 10
     # AF1.alpha = 1
     AF1.LX = 500
     AF1.LY = 500
-    AF1.Dt = 0.05
-    AF1.Dr = 0.5
-    AF1.R = 20
-    AF1.k = 500
+    AF1.Dt = 0.0005
+    AF1.Dr = 1
+    AF1.R = 40
+    AF1.k = 10000
     AF1.mu = 1
 #     AF1.mup = 0.02/(AF1.N_ptcl/(AF1.LX*AF1.LY))
     AF1.pmode='MF'
