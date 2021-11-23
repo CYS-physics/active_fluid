@@ -134,7 +134,7 @@ class active_fluid:     # OOP
     def set_zero(self):              # initializing simulation configurations
         self.x = np.random.uniform(-self.LX/2, self.LX/2,self.N_ptcl)     # starting with uniformly distributed particles
         self.y = np.random.uniform(-self.LY/2, self.LY/2,self.N_ptcl)     
-        self.theta = np.random.uniform(-np.pi/2, np.pi/2,self.N_ptcl)
+        self.theta = np.random.uniform(-np.pi, np.pi,self.N_ptcl)
         
         self.X = np.zeros(1)  #np.random.uniform(-self.LX/2, self.LX/2,self.N_passive)
         self.Y = np.zeros(1)  #np.random.uniform(-self.LY/2, self.LY/2,self.N_passive)     
@@ -266,7 +266,7 @@ class active_fluid:     # OOP
         return F
     
 def F_scan(N_iter,vu_init,vu_fin,N_v):
-    direc ='211124_2_FV/'
+    direc ='211125_FV/'
     os.makedirs(os.getcwd()+'/data/'+direc,exist_ok=True)
     
 
