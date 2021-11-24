@@ -87,7 +87,7 @@ class active_fluid:     # OOP
             force = 4*self.k*(-12*r**(-13)/r_0**(-12)+6*r**(-7)/r_0**(-6))*(r<r_cut)
         # cone potential
         elif (self.potential=='harmonic'):
-            force = -self.k*(r_cut-r)*(r>r_cut)
+            force = -self.k*(r_cut-r)*(r<r_cut)
         
         else:
             force = -self.k*(np.abs(r)<r_cut)
@@ -274,6 +274,10 @@ class active_fluid:     # OOP
                 ax2.set_xscale('log')
                 ax2.set_yscale('log')
                 ax2.grid()
+                
+                ax3.plot(tra)
+                ax3.grid()
+                
             elif self.pmode == 'MF':
                 ax2.plot(Ftraj)
                 ax2.grid()
@@ -287,12 +291,12 @@ class active_fluid:     # OOP
 
 
 #                 ax4.plot(tra)
-                ax4.hist(np.cos(self.theta),bins=80,density=True)
+            ax4.hist(np.cos(self.theta),bins=80,density=True)
 #                 ax4.plot(np.arange(len(Favg)),Favg+Favg*(Favg>0)-Favg*(Favg<0),color = 'blue')
 #                 ax4.plot(np.arange(len(Favg)),-Favg+Favg*(Favg>0)-Favg*(Favg<0),color = 'red')
 #                 ax4.set_yscale('log')
 #                 ax4.set_xscale('log')
-                ax4.grid()
+            ax4.grid()
             fig1.canvas.draw()
         return (Xtraj,Ytraj)
                 
@@ -312,28 +316,29 @@ class active_fluid:     # OOP
         return F
     
 def F_scan(N_iter,vu_init,vu_fin,N_v):
-    direc ='211125_3_FV/'
+    direc ='211125_4_FV/'
     os.makedirs(os.getcwd()+'/data/'+direc,exist_ok=True)
     
 
 
 
-    AF1 = active_fluid(N_ptcl=10000,Fs = 1000)
+    AF1 = active_fluid(N_ptcl=10000,Fs = 500)
 
-    AF1.u = 20
+    AF1.u = 30
     # AF1.alpha = 1
-    AF1.LX = 500
-    AF1.LY = 500
-    AF1.Dt = 0
-    AF1.Dr = 0.2
+    AF1.LX = 200
+    AF1.LY = 200
+    AF1.Dt = 0.01
+    AF1.Dr = 0
     AF1.R = 50
-    AF1.k = 100
+    AF1.k = 10
     AF1.mu = 1
+    AF1,
 #     AF1.mup = 0.02/(AF1.N_ptcl/(AF1.LX*AF1.LY))
     AF1.pmode='MF'
     AF1.amode = 'ABP'
     AF1.potential='harmonic'
-    AF1.hydrodynamic = False
+    AF1.hydrodynamic = True
 
     
     v_axis = np.linspace(vu_init*AF1.u,vu_fin*AF1.u,N_v)
