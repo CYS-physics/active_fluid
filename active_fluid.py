@@ -87,7 +87,7 @@ class active_fluid:     # OOP
             force = 4*self.k*(-12*r**(-13)/r_0**(-12)+6*r**(-7)/r_0**(-6))*(r<r_cut)
         # cone potential
         elif (self.potential=='harmonic'):
-            force = -self.k*(r_cut-r)*(r<r_cut)
+            force = -self.k*(r_cut-r)*(r>r_cut)
         
         else:
             force = -self.k*(np.abs(r)<r_cut)
@@ -153,7 +153,7 @@ class active_fluid:     # OOP
         X     = self.X.reshape(1,-1)
         Y     = self.Y.reshape(1,-1)
         (rel_x,rel_y) = self.periodic(x-X,y-Y)
-        idx = np.where((np.abs(rel_x)<=1.1*self.R)*(np.abs(rel_y)<=1.1*self.R))
+        idx = np.where((np.abs(rel_x)<=1.1*self.R)*(np.abs(rel_y)<=1.3*self.R))
         F_active,F_passive = self.force(rel_x = rel_x, rel_y = rel_y,idx=idx)
         
         # active fluid
@@ -165,7 +165,7 @@ class active_fluid:     # OOP
         self.y           +=  np.sqrt(2*self.Dt*self.dt)*np.random.normal(0,1,self.N_ptcl)    # thermal noise
         
         if self.hydrodynamic:
-            self.theta[idx[0]]   += self.dt*self.mur*(np.cos(self.theta[idx[0]])*F_active[1]-np.sin(self.theta[idx[0]])*F_active[0])*(np.cos(self.theta[idx[0]])*F_active[0]+np.sin(self.theta[idx[0]])*F_active[1]<0)
+            self.theta[idx[0]]   += self.dt*self.mur*(np.cos(self.theta[idx[0]])*F_active[1]-np.sin(self.theta[idx[0]])*F_active[0])*(np.cos(self.theta[idx[0]])*F_active[0]+np.sin(self.theta[idx[0]])*F_active[1]<0)*(F_active[0]**2+F_active[1]**2)
             
         
         
@@ -184,6 +184,7 @@ class active_fluid:     # OOP
         else:
             self.X           += self.dt*self.mup*F_passive[0]
             self.Y           += self.dt*self.mup*F_passive[1]
+            self.F_passive = F_passive
 #         self.Theta       += self.dt*self.mu_R*torque
         
         # periodic boundary
@@ -227,6 +228,8 @@ class active_fluid:     # OOP
             
         Xtraj = np.zeros(0)
         Ytraj = np.zeros(0)
+        X = 0
+        Y = 0
         Ftraj = np.zeros(0)
         tra = np.zeros(0)
         for nn in trange(N_iter):
@@ -237,9 +240,15 @@ class active_fluid:     # OOP
             for _ in range(10):
                 for __ in range(100):
                     self.time_evolve()
-                Xtraj = np.append(Xtraj,self.X)
-                Ytraj = np.append(Ytraj,self.Y)
-                Ftraj = np.append(Ftraj,self.f)
+                    if self.pmode =='free':
+                        X+= self.mup*self.F_passive[0]*self.dt
+                        Y+= self.mup*self.F_passive[1]*self.dt
+                    else:
+                        X+=self.dt*self.v
+                Xtraj = np.append(Xtraj,X)
+                Ytraj = np.append(Ytraj,Y)
+                if self.pmode=='MF':
+                    Ftraj = np.append(Ftraj,self.f)
                 tra = np.append(tra,self.theta[0])
                 
                 
@@ -248,7 +257,7 @@ class active_fluid:     # OOP
             ax3.clear()
             ax4.clear()
             if(show_passive):
-                ax1.scatter(self.X,self.Y,color='yellow',s = 200*50**2*self.R**2/self.LX**2)
+                ax1.scatter(self.X,self.Y,color='yellow',s = 30*50**2*self.R**2/self.LX**2)
             if(show_active):
                 ax1.scatter(self.x,self.y,color='blue',alpha=0.1)
                 ax1.scatter(self.x[0],self.y[0],color='green')
@@ -268,9 +277,21 @@ class active_fluid:     # OOP
             elif self.pmode == 'MF':
                 ax2.plot(Ftraj)
                 ax2.grid()
-                ax3.plot(np.cumsum(Ftraj)/(np.arange(len(Ftraj))+1),color='red')
+                Favg = np.cumsum(Ftraj)#/(np.arange(len(Ftraj))+1)
+                ax3.hist(Ftraj,bins=80,density=True)
+                ax3.set_yscale('log')
                 ax3.grid()
-                ax4.plot(tra)
+#                 ax3.plot(Favg,color='red')
+#                 ax3.grid()
+
+
+
+#                 ax4.plot(tra)
+                ax4.hist(np.cos(self.theta),bins=80,density=True)
+#                 ax4.plot(np.arange(len(Favg)),Favg+Favg*(Favg>0)-Favg*(Favg<0),color = 'blue')
+#                 ax4.plot(np.arange(len(Favg)),-Favg+Favg*(Favg>0)-Favg*(Favg<0),color = 'red')
+#                 ax4.set_yscale('log')
+#                 ax4.set_xscale('log')
                 ax4.grid()
             fig1.canvas.draw()
         return (Xtraj,Ytraj)
