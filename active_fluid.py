@@ -52,8 +52,10 @@ class active_fluid:     # OOP
         
         # passive object movement
         self.mup = 0.01
+        self.mur = 0.01
 #         self.mu_R = 0.01
         self.potential='WCA'
+        self.hydrodynamic = False
     
     
     # check coefficients for linearization condition
@@ -161,6 +163,12 @@ class active_fluid:     # OOP
         self.y[idx[0]]   +=  self.dt*(self.mu*F_active[1])       # interaction
         self.y           +=  self.dt*(self.u*(np.sin(self.theta)))    # propulsion
         self.y           +=  np.sqrt(2*self.Dt*self.dt)*np.random.normal(0,1,self.N_ptcl)    # thermal noise
+        
+        if self.hydrodynamic:
+            self.theta[idx[0]]   += self.dt*self.mur*(np.cos(self.theta[idx[0]])*F_active[1]-np.sin(self.theta[idx[0]])*F_active[0])*(np.cos(self.theta[idx[0]])*F_active[0]+np.sin(self.theta[idx[0]])*F_active[1]<0)
+            
+        
+        
         if self.amode=='RTP':
             self.theta       +=  np.random.uniform(-np.pi, np.pi,self.N_ptcl)*self.tumble()      # tumbling noise
         elif self.amode=='ABP':
@@ -206,8 +214,10 @@ class active_fluid:     # OOP
         
         #Setup plot for updated positions
         fig1 = plt.figure()
-        ax1 = fig1.add_subplot(121)
-        ax2 = fig1.add_subplot(122)
+        ax1 = fig1.add_subplot(221)
+        ax4 = fig1.add_subplot(223)
+        ax2 = fig1.add_subplot(222)
+        ax3 = fig1.add_subplot(224)
         fig1.show()
         fig1.tight_layout()
         fig1.canvas.draw()
@@ -217,6 +227,8 @@ class active_fluid:     # OOP
             
         Xtraj = np.zeros(0)
         Ytraj = np.zeros(0)
+        Ftraj = np.zeros(0)
+        tra = np.zeros(0)
         for nn in trange(N_iter):
             
             if record:
@@ -227,26 +239,39 @@ class active_fluid:     # OOP
                     self.time_evolve()
                 Xtraj = np.append(Xtraj,self.X)
                 Ytraj = np.append(Ytraj,self.Y)
+                Ftraj = np.append(Ftraj,self.f)
+                tra = np.append(tra,self.theta[0])
+                
                 
             ax1.clear()
             ax2.clear()
+            ax3.clear()
+            ax4.clear()
             if(show_passive):
                 ax1.scatter(self.X,self.Y,color='yellow',s = 200*50**2*self.R**2/self.LX**2)
             if(show_active):
                 ax1.scatter(self.x,self.y,color='blue',alpha=0.1)
+                ax1.scatter(self.x[0],self.y[0],color='green')
             if(show_traj):
                 ax1.scatter(Xtraj,Ytraj,color = 'red', s = 1)
             ax1.axis(axrange)
             ax1.set_aspect('equal', 'box')
 
-            msd = np.zeros(len(Xtraj)-1)
-            for i in range(len(Xtraj)-1):
-                msd[i] = np.average((Xtraj[i+1:]-Xtraj[:-i-1])**2+(Ytraj[i+1:]-Ytraj[:-i-1])**2)
-            ax2.plot(msd)
-            ax2.set_xscale('log')
-            ax2.set_yscale('log')
-            ax2.grid()
-            
+            if self.pmode == 'free':
+                msd = np.zeros(len(Xtraj)-1)
+                for i in range(len(Xtraj)-1):
+                    msd[i] = np.average((Xtraj[i+1:]-Xtraj[:-i-1])**2+(Ytraj[i+1:]-Ytraj[:-i-1])**2)
+                ax2.plot(msd)
+                ax2.set_xscale('log')
+                ax2.set_yscale('log')
+                ax2.grid()
+            elif self.pmode == 'MF':
+                ax2.plot(Ftraj)
+                ax2.grid()
+                ax3.plot(np.cumsum(Ftraj)/(np.arange(len(Ftraj))+1),color='red')
+                ax3.grid()
+                ax4.plot(tra)
+                ax4.grid()
             fig1.canvas.draw()
         return (Xtraj,Ytraj)
                 
@@ -266,26 +291,28 @@ class active_fluid:     # OOP
         return F
     
 def F_scan(N_iter,vu_init,vu_fin,N_v):
-    direc ='211125_1_FV/'
+    direc ='211125_3_FV/'
     os.makedirs(os.getcwd()+'/data/'+direc,exist_ok=True)
     
 
 
 
-    AF1 = active_fluid(N_ptcl=10000,amode='ABP',Fs = 5000)
+    AF1 = active_fluid(N_ptcl=10000,Fs = 1000)
 
-    AF1.u = 10
+    AF1.u = 20
     # AF1.alpha = 1
-    AF1.LX = 200
-    AF1.LY = 200
-    AF1.Dt = 0.0005
-    AF1.Dr = 1
-    AF1.R = 20
-    AF1.k = 20000
+    AF1.LX = 500
+    AF1.LY = 500
+    AF1.Dt = 0
+    AF1.Dr = 0.2
+    AF1.R = 50
+    AF1.k = 100
     AF1.mu = 1
 #     AF1.mup = 0.02/(AF1.N_ptcl/(AF1.LX*AF1.LY))
     AF1.pmode='MF'
+    AF1.amode = 'ABP'
     AF1.potential='harmonic'
+    AF1.hydrodynamic = False
 
     
     v_axis = np.linspace(vu_init*AF1.u,vu_fin*AF1.u,N_v)
