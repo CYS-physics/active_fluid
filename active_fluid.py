@@ -316,13 +316,13 @@ class active_fluid:     # OOP
         return F
     
 def F_scan(N_iter,vu_init,vu_fin,N_v):
-    direc ='211125_4_FV/'
+    direc ='211130_FV/'
     os.makedirs(os.getcwd()+'/data/'+direc,exist_ok=True)
     
 
 
 
-    AF1 = active_fluid(N_ptcl=10000,Fs = 500)
+    AF1 = active_fluid(N_ptcl=5000,Fs = 1000)
 
     AF1.u = 30
     # AF1.alpha = 1
