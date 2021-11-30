@@ -85,9 +85,13 @@ class active_fluid:     # OOP
             r_0 = r_cut*2**(-1/6)
             
             force = 4*self.k*(-12*r**(-13)/r_0**(-12)+6*r**(-7)/r_0**(-6))*(r<r_cut)
+        elif (self.potential=='LJ'):
+            r_0 = r_cut*2**(-1/6)
+            
+            force = 4*self.k*(-12*r**(-13)/r_0**(-12)+6*r**(-7)/r_0**(-6))
         # cone potential
         elif (self.potential=='harmonic'):
-            force = -self.k*(r_cut-r)*(r<r_cut)
+            force = -self.k*(r_cut-r)*(r>r_cut)
         
         else:
             force = -self.k*(np.abs(r)<r_cut)
@@ -153,7 +157,9 @@ class active_fluid:     # OOP
         X     = self.X.reshape(1,-1)
         Y     = self.Y.reshape(1,-1)
         (rel_x,rel_y) = self.periodic(x-X,y-Y)
-        idx = np.where((np.abs(rel_x)<=1.1*self.R)*(np.abs(rel_y)<=1.3*self.R))
+        self.r = np.sqrt(rel_x**2+rel_y**2)
+        celrange = 5
+        idx = np.where((np.abs(rel_x)<=celrange*self.R)*(np.abs(rel_y)<=celrange*self.R))
         F_active,F_passive = self.force(rel_x = rel_x, rel_y = rel_y,idx=idx)
         
         # active fluid
@@ -165,7 +171,7 @@ class active_fluid:     # OOP
         self.y           +=  np.sqrt(2*self.Dt*self.dt)*np.random.normal(0,1,self.N_ptcl)    # thermal noise
         
         if self.hydrodynamic:
-            self.theta[idx[0]]   += self.dt*self.mur*(np.cos(self.theta[idx[0]])*F_active[1]-np.sin(self.theta[idx[0]])*F_active[0])*(np.cos(self.theta[idx[0]])*F_active[0]+np.sin(self.theta[idx[0]])*F_active[1]<0)*(F_active[0]**2+F_active[1]**2)
+            self.theta[idx[0]]   += self.dt*self.mur*(np.cos(self.theta[idx[0]])*F_active[1]-np.sin(self.theta[idx[0]])*F_active[0])*(np.cos(self.theta[idx[0]])*F_active[0]+np.sin(self.theta[idx[0]])*F_active[1]<0)*(F_active[0]**2+F_active[1]**2)*(self.r[idx[0]]<self.R)
             
         
         
@@ -277,7 +283,9 @@ class active_fluid:     # OOP
                 
                 ax3.plot(tra)
                 ax3.grid()
-                
+                ax4.hist(self.r,bins = 50)
+                ax4.grid()
+
             elif self.pmode == 'MF':
                 ax2.plot(Ftraj)
                 ax2.grid()
@@ -285,13 +293,13 @@ class active_fluid:     # OOP
                 ax3.hist(Ftraj,bins=80,density=True)
                 ax3.set_yscale('log')
                 ax3.grid()
-#                 ax3.plot(Favg,color='red')
-#                 ax3.grid()
+                ax4.plot(Favg,color='red')
+                ax4.grid()
 
 
 
 #                 ax4.plot(tra)
-            ax4.hist(np.cos(self.theta),bins=80,density=True)
+#             ax4.hist(np.cos(self.theta),bins=80,density=True)
 #                 ax4.plot(np.arange(len(Favg)),Favg+Favg*(Favg>0)-Favg*(Favg<0),color = 'blue')
 #                 ax4.plot(np.arange(len(Favg)),-Favg+Favg*(Favg>0)-Favg*(Favg<0),color = 'red')
 #                 ax4.set_yscale('log')
@@ -316,13 +324,13 @@ class active_fluid:     # OOP
         return F
     
 def F_scan(N_iter,vu_init,vu_fin,N_v):
-    direc ='211125_4_FV/'
+    direc ='211130_FV/'
     os.makedirs(os.getcwd()+'/data/'+direc,exist_ok=True)
     
 
 
 
-    AF1 = active_fluid(N_ptcl=10000,Fs = 500)
+    AF1 = active_fluid(N_ptcl=10000,Fs = 1000)
 
     AF1.u = 30
     # AF1.alpha = 1
@@ -333,7 +341,7 @@ def F_scan(N_iter,vu_init,vu_fin,N_v):
     AF1.R = 50
     AF1.k = 10
     AF1.mu = 1
-    AF1,
+    AF1.mur = 0.00000005
 #     AF1.mup = 0.02/(AF1.N_ptcl/(AF1.LX*AF1.LY))
     AF1.pmode='MF'
     AF1.amode = 'ABP'
