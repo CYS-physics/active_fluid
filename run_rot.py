@@ -29,10 +29,10 @@ AF1.l_passive = 15
 AF1.R = 3
 AF1.Rb = 3
 AF1.mu_T = 0.1
-AF1.mu_R = np.array([30,50])
+AF1.mu_R = np.array([50,50])
 AF1.set_zero()
 
-direc = 'data/rotation/3/'
+direc = 'data/rotation/4/'
 os.makedirs(direc,exist_ok=True)
 state = os.getcwd()+'/'+direc+str(N)+'_'+str(seed)+'.npz'
 

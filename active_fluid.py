@@ -101,7 +101,7 @@ class active_fluid:     # OOP
         thetas = np.linspace(-np.pi/2,np.pi/2,self.N_body).reshape(1,1,-1)+Theta
 #         centerX = self.R*np.cos(thetas)
 #         centerY = self.R*np.sin(thetas)
-        RA = np.array([0,self.R]).reshape(-1,1)
+        RA = np.array([self.R,self.R]).reshape(-1,1)
         centerX = self.R*np.cos(thetas)-RA*np.cos(self.Theta.reshape(-1,1))
         centerY = self.R*np.sin(thetas)-RA*np.sin(self.Theta.reshape(-1,1))
 
@@ -188,7 +188,7 @@ class active_fluid:     # OOP
 #             os.makedirs(os.getcwd()+'/record',exist_ok=True)
 
         thetas = np.linspace(-np.pi/2,np.pi/2,self.N_body).reshape(1,-1)+self.Theta.reshape(-1,1)
-        RA = np.array([0,self.R]).reshape(-1,1)
+        RA = np.array([self.R,self.R]).reshape(-1,1)
         centerX = self.R*np.cos(thetas)-RA*np.cos(self.Theta.reshape(-1,1))
         centerY = self.R*np.sin(thetas)-RA*np.sin(self.Theta.reshape(-1,1))
 
