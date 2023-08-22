@@ -44,13 +44,14 @@ class active_fluid:     # OOP
         self.F=4              # just give potential of fixed value for now
         self.R=3
         self.Rb = 3
-        self.lamb = 2
+        self.lamb = 2.0
         self.N_body = 13
         self.l_passive = 10
 
         # passive object movement
         self.mu_T = 0.01
-        self.mu_R = np.array([0.3,0.5])
+        self.mu_R = np.array([0.3,0.3])
+        self.RA = np.array([0,self.R])
 
 
     # check coefficients for linearization condition
@@ -101,7 +102,7 @@ class active_fluid:     # OOP
         thetas = np.linspace(-np.pi/2,np.pi/2,self.N_body).reshape(1,1,-1)+Theta
 #         centerX = self.R*np.cos(thetas)
 #         centerY = self.R*np.sin(thetas)
-        RA = np.array([self.R,self.R]).reshape(-1,1)
+        RA = self.RA.reshape(-1,1)
         centerX = self.R*np.cos(thetas)-RA*np.cos(self.Theta.reshape(-1,1))
         centerY = self.R*np.sin(thetas)-RA*np.sin(self.Theta.reshape(-1,1))
 
@@ -147,8 +148,8 @@ class active_fluid:     # OOP
         F_active,torque = self.force()
 
         # active fluid
-        self.theta       +=  np.sqrt(2*self.Dt*self.dt)*np.random.normal(0,1,self.N_ptcl)    # thermal noise
-#         self.theta       +=  np.random.uniform(-np.pi, np.pi,self.N_ptcl)*self.tumble()      # tumbling noise
+#         self.theta       +=  np.sqrt(2*self.Dt*self.dt)*np.random.normal(0,1,self.N_ptcl)    # thermal noise
+        self.theta       +=  np.random.uniform(-np.pi, np.pi,self.N_ptcl)*self.tumble()      # tumbling noise
         self.x           +=  self.dt*(self.u*(np.cos(self.theta))+self.mu*F_active[0])       # deterministic
         self.x           +=  np.sqrt(2*self.Dt*self.dt)*np.random.normal(0,1,self.N_ptcl)    # thermal noise
         self.y           +=  self.dt*(self.u*(np.sin(self.theta))+self.mu*F_active[1])       # deterministic
@@ -188,7 +189,7 @@ class active_fluid:     # OOP
 #             os.makedirs(os.getcwd()+'/record',exist_ok=True)
 
         thetas = np.linspace(-np.pi/2,np.pi/2,self.N_body).reshape(1,-1)+self.Theta.reshape(-1,1)
-        RA = np.array([self.R,self.R]).reshape(-1,1)
+        RA = self.RA.reshape(-1,1)
         centerX = self.R*np.cos(thetas)-RA*np.cos(self.Theta.reshape(-1,1))
         centerY = self.R*np.sin(thetas)-RA*np.sin(self.Theta.reshape(-1,1))
 
