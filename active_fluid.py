@@ -75,16 +75,16 @@ class active_fluid:     # OOP
 
         return (mod_x,mod_y)
 
-    def V(self,x,y,X,Y,Theta):                                         # V as function of x-X (relative position w r t object)
-        (rel_x,rel_y) = self.periodic(x-X,y-Y)
-        thetas = np.linspace(-np.pi/2,np.pi/2,self.N_body)+Theta
-        centerX = np.cos(thetas)
-        centerY = np.sin(thetas)
+#     def V(self,x,y,X,Y,Theta):                                         # V as function of x-X (relative position w r t object)
+#         (rel_x,rel_y) = self.periodic(x-X,y-Y)
+#         thetas = np.linspace(-np.pi/2,np.pi/2,self.N_body)+Theta
+#         centerX = np.cos(thetas)
+#         centerY = np.sin(thetas)
 
-        interact = (np.square(centerX-rel_x)+np.square(centerY-rel_y)<self.Rb**2)  # boolean 
-        strength = 0.5*self.lamb*np.square(self.Rb-np.sqrt(np.square(centerX-rel_x)+np.square(centerY-rel_y)))
+#         interact = (np.square(centerX-rel_x)+np.square(centerY-rel_y)<self.Rb**2)  # boolean 
+#         strength = 0.5*self.lamb*np.square(self.Rb-np.sqrt(np.square(centerX-rel_x)+np.square(centerY-rel_y)))
 
-        return np.sum(interact*strength)
+#         return np.sum(interact*strength)
 
 
 
@@ -103,12 +103,13 @@ class active_fluid:     # OOP
         
 
         (rel_x,rel_y) = self.periodic(x-X,y-Y)
-        thetas = np.linspace(-np.pi/2,np.pi/2,self.N_body).reshape(1,1,-1)+Theta
+        # thetas = np.linspace(-np.pi/2,np.pi/2,self.N_body).reshape(1,1,-1)+Theta
 #         centerX = self.R*np.cos(thetas)
 #         centerY = self.R*np.sin(thetas)
         RA = self.RA.reshape(-1,1)
-        centerX = self.R*np.cos(thetas)-RA*np.cos(self.Theta.reshape(-1,1))
-        centerY = self.R*np.sin(thetas)-RA*np.sin(self.Theta.reshape(-1,1))
+        (centerX,centerY)=self.config()
+        # centerX = self.R*np.cos(thetas)-RA*np.cos(self.Theta.reshape(-1,1))
+        # centerY = self.R*np.sin(thetas)-RA*np.sin(self.Theta.reshape(-1,1))
 
         length = np.sqrt(np.square(centerX-rel_x)+np.square(centerY-rel_y))
         direcX = (centerX-rel_x)/length
@@ -133,8 +134,10 @@ class active_fluid:     # OOP
 
     # Dynamics part
     def set_zero(self):              # initializing simulation configurations
-        self.x = np.random.uniform(-self.L/2, self.L/2,self.N_ptcl)     # starting with uniformly distributed particles
-        self.y = np.random.uniform(-self.L/2, self.L/2,self.N_ptcl)     
+        # self.x = np.random.uniform(-self.L/2, self.L/2,self.N_ptcl)     # starting with uniformly distributed particles
+        # self.y = np.random.uniform(-self.L/2, self.L/2,self.N_ptcl) 
+        self.x = np.random.uniform(self.Rb*2, self.L-self.Rb*2,self.N_ptcl)     # starting with uniformly distributed particles
+        self.y = np.random.uniform(self.Rb*2, self.L-self.Rb*2,self.N_ptcl)
         self.theta = np.random.uniform(-np.pi/2, np.pi/2,self.N_ptcl)
 
         # self.X = np.array([-self.l_passive/2,self.l_passive/2])
@@ -195,14 +198,29 @@ class active_fluid:     # OOP
 #         if record:
 #             os.makedirs(os.getcwd()+'/record',exist_ok=True)
 
-        thetas = np.linspace(-np.pi/2,np.pi/2,self.N_body).reshape(1,-1)+self.Theta.reshape(-1,1)
+        thetas = np.linspace(-np.pi/3,np.pi/3,self.N_body).reshape(1,-1)+self.Theta.reshape(-1,1)
         RA = self.RA.reshape(-1,1)
-        centerX = self.R*np.cos(thetas)-RA*np.cos(self.Theta.reshape(-1,1))
-        centerY = self.R*np.sin(thetas)-RA*np.sin(self.Theta.reshape(-1,1))
+        
+        X1 = self.R*np.cos(thetas)-RA*np.cos(self.Theta.reshape(-1,1))
+        Y1 = self.R*np.sin(thetas)-RA*np.sin(self.Theta.reshape(-1,1))
+        X2 = self.R*np.cos(thetas+np.pi/3)-RA*np.cos(self.Theta.reshape(-1,1)+np.pi/3)
+        Y2 = self.R*np.sin(thetas+np.pi/3)-RA*np.sin(self.Theta.reshape(-1,1)+np.pi/3)
+        X3 = self.R*np.cos(thetas-np.pi/3)-RA*np.cos(self.Theta.reshape(-1,1)-np.pi/3)
+        Y3 = self.R*np.sin(thetas-np.pi/3)-RA*np.sin(self.Theta.reshape(-1,1)-np.pi/3)
+        X4 = self.R*np.cos(thetas+np.pi*2/3)-RA*np.cos(self.Theta.reshape(-1,1)+np.pi*2/3)
+        Y4 = self.R*np.sin(thetas+np.pi*2/3)-RA*np.sin(self.Theta.reshape(-1,1)+np.pi*2/3)
+        X5 = self.R*np.cos(thetas-np.pi*2/3)-RA*np.cos(self.Theta.reshape(-1,1)-np.pi*2/3)
+        Y5 = self.R*np.sin(thetas-np.pi*2/3)-RA*np.sin(self.Theta.reshape(-1,1)-np.pi*2/3)
+        X6 = self.R*np.cos(thetas+np.pi)-RA*np.cos(self.Theta.reshape(-1,1)+np.pi)
+        Y6 = self.R*np.sin(thetas+np.pi)-RA*np.sin(self.Theta.reshape(-1,1)+np.pi)
+        
+        centerX = np.concatenate([X1,X2,X3,X4,X5,X6],axis=1)
+        centerY = np.concatenate([Y1,Y2,Y3,Y4,Y5,Y6],axis=1)
+        # print(centerX.shape)
 
-        pointX = (self.X.reshape(-1,1)+centerX).reshape(-1)
-        pointY = (self.Y.reshape(-1,1)+centerY).reshape(-1)
-        return (pointX, pointY)
+        # pointX = (self.X.reshape(-1,1)+centerX).reshape(-1)
+        # pointY = (self.Y.reshape(-1,1)+centerY).reshape(-1)
+        return (centerX,centerY)
 
 
 #         for nn in trange(N_iter):
