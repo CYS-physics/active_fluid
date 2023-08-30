@@ -13,7 +13,7 @@ class active_fluid:     # OOP
 
      # initializing coefficients of model and configuration of states in phase space
 
-    def __init__(self,alpha=1, u=10,Fs=100, N_ptcl=40000,N_passive = 2, mu=1,Dt = 1):
+    def __init__(self,alpha=1, u=10,Fs=100, N_ptcl=40000,N_passive = 1, mu=1,Dt = 1):
 
         self.initial_state = (alpha,u,Fs,N_ptcl,mu,Dt)    # recording initial state
          # coefficients
@@ -29,7 +29,7 @@ class active_fluid:     # OOP
 
 
      # setting coefficients
-    def set_coeff(self,alpha=1, u=10,Fs=100, N_ptcl=40000,N_passive = 2, mu=1,Dt = 1):
+    def set_coeff(self,alpha=1, u=10,Fs=100, N_ptcl=40000,N_passive = 1, mu=1,Dt = 1):
         self.alpha = alpha                       # rate of tumble (/time dimension)
         self.u = u                               # velocity of active particle
         self.Fs = Fs                             # number of simulation in unit time
@@ -47,12 +47,16 @@ class active_fluid:     # OOP
         self.lamb = 2.0
         self.N_body = 13
         self.l_passive = 10
+        self.N_passive = N_passive
 
         # passive object movement
         self.mu_T = 0.01
         self.mu_R = np.array([0.3,0.3])
         self.RA = np.array([0,self.R])
 
+        
+        self.mu_R = np.array([0.3])
+        self.RA = np.array([self.R])
 
     # check coefficients for linearization condition
     def check_coeff(self):
@@ -133,10 +137,13 @@ class active_fluid:     # OOP
         self.y = np.random.uniform(-self.L/2, self.L/2,self.N_ptcl)     
         self.theta = np.random.uniform(-np.pi/2, np.pi/2,self.N_ptcl)
 
-        self.X = np.array([-self.l_passive/2,self.l_passive/2])
-        self.Y = np.array([0,0])     
-#         self.Theta = np.random.uniform(-np.pi, np.pi,self.N_passive)
-        self.Theta = np.random.uniform(-np.pi, np.pi,2)
+        # self.X = np.array([-self.l_passive/2,self.l_passive/2])
+        # self.Y = np.array([0,0])     
+        self.X = np.array([0])
+        self.Y = np.array([0])  
+        
+        self.Theta = np.random.uniform(-np.pi, np.pi,self.N_passive)
+        # self.Theta = np.random.uniform(-np.pi, np.pi,2)
 
     def tumble(self):             # random part of s dynamics
         tumble = np.random.choice([0,1], self.N_ptcl, p = [1-self.dt*self.alpha, self.dt*self.alpha]) # 0 no tumble, 1 tumble
