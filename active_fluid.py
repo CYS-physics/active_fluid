@@ -125,8 +125,8 @@ class active_fluid:     # OOP
         # sum over active particles, sum over bodies
         # positive torque for counter-clockwise acceleration
 
-#         return (F_active,F_passive, torque)     # F_active ~ -partialV
-        return (F_active, torque)     # F_active ~ -partialV
+        return (F_active,F_passive, torque)     # F_active ~ -partialV
+#         return (F_active, torque)     # F_active ~ -partialV
 
 
 
@@ -142,8 +142,8 @@ class active_fluid:     # OOP
 
         # self.X = np.array([-self.l_passive/2,self.l_passive/2])
         # self.Y = np.array([0,0])     
-        self.X = np.array([0])
-        self.Y = np.array([0])  
+        self.X = np.array([0.])
+        self.Y = np.array([0.])  
         
         self.Theta = np.random.uniform(-np.pi, np.pi,self.N_passive)
         # self.Theta = np.random.uniform(-np.pi, np.pi,2)
@@ -154,11 +154,11 @@ class active_fluid:     # OOP
 
 
     def time_evolve(self):
-#         F_active,F_passive,torque = self.force()
-        F_active,torque = self.force()
+        F_active,F_passive,torque = self.force()
+#         F_active,torque = self.force()
 
         # active fluid
-#         self.theta       +=  np.sqrt(2*self.Dt*self.dt)*np.random.normal(0,1,self.N_ptcl)    # thermal noise
+        # self.theta       +=  np.sqrt(2*self.Dt*self.dt)*np.random.normal(0,1,self.N_ptcl)    # thermal noise
         self.theta       +=  np.random.uniform(-np.pi, np.pi,self.N_ptcl)*self.tumble()      # tumbling noise
         self.x           +=  self.dt*(self.u*(np.cos(self.theta))+self.mu*F_active[0])       # deterministic
         self.x           +=  np.sqrt(2*self.Dt*self.dt)*np.random.normal(0,1,self.N_ptcl)    # thermal noise
@@ -166,13 +166,14 @@ class active_fluid:     # OOP
         self.y           +=  np.sqrt(2*self.Dt*self.dt)*np.random.normal(0,1,self.N_ptcl)    # thermal noise
 
         # passive object
-#         self.X           += self.dt*self.mu_T*F_passive[0]
-#         self.Y           += self.dt*self.mu_T*F_passive[1]
+#         print(type(self.X))
+        self.X           += self.dt*self.mu_T*F_passive[0]
+        self.Y           += self.dt*self.mu_T*F_passive[1]
         self.Theta       += self.dt*self.mu_R*torque
 
         # periodic boundary
         self.x,self.y = self.periodic(self.x,self.y)
-#         self.X,self.Y = self.periodic(self.X,self.Y)
+        self.X,self.Y = self.periodic(self.X,self.Y)
 
     def simulate(self,N_iter):
         traj = np.empty([self.N_passive,3,N_iter])
@@ -198,24 +199,58 @@ class active_fluid:     # OOP
 #         if record:
 #             os.makedirs(os.getcwd()+'/record',exist_ok=True)
 
+
+        #U shape
         thetas = np.linspace(-np.pi/3,np.pi/3,self.N_body).reshape(1,-1)+self.Theta.reshape(-1,1)
         RA = self.RA.reshape(-1,1)
         
-        X1 = self.R*np.cos(thetas)-RA*np.cos(self.Theta.reshape(-1,1))
-        Y1 = self.R*np.sin(thetas)-RA*np.sin(self.Theta.reshape(-1,1))
-        X2 = self.R*np.cos(thetas+np.pi/3)-RA*np.cos(self.Theta.reshape(-1,1)+np.pi/3)
-        Y2 = self.R*np.sin(thetas+np.pi/3)-RA*np.sin(self.Theta.reshape(-1,1)+np.pi/3)
-        X3 = self.R*np.cos(thetas-np.pi/3)-RA*np.cos(self.Theta.reshape(-1,1)-np.pi/3)
-        Y3 = self.R*np.sin(thetas-np.pi/3)-RA*np.sin(self.Theta.reshape(-1,1)-np.pi/3)
-        X4 = self.R*np.cos(thetas+np.pi*2/3)-RA*np.cos(self.Theta.reshape(-1,1)+np.pi*2/3)
-        Y4 = self.R*np.sin(thetas+np.pi*2/3)-RA*np.sin(self.Theta.reshape(-1,1)+np.pi*2/3)
-        X5 = self.R*np.cos(thetas-np.pi*2/3)-RA*np.cos(self.Theta.reshape(-1,1)-np.pi*2/3)
-        Y5 = self.R*np.sin(thetas-np.pi*2/3)-RA*np.sin(self.Theta.reshape(-1,1)-np.pi*2/3)
-        X6 = self.R*np.cos(thetas+np.pi)-RA*np.cos(self.Theta.reshape(-1,1)+np.pi)
-        Y6 = self.R*np.sin(thetas+np.pi)-RA*np.sin(self.Theta.reshape(-1,1)+np.pi)
+        centerX = self.R*np.cos(thetas)-RA*np.cos(self.Theta.reshape(-1,1))
+        centerY = self.R*np.sin(thetas)-RA*np.sin(self.Theta.reshape(-1,1))
+
+#         #WEDGE
+#         line = np.linspace(0,self.RA,self.N_body).reshape(1,-1)
+#         X1 = line*np.cos(self.Theta.reshape(-1,1)+self.thetaW/6)
+#         Y1 = line*np.sin(self.Theta.reshape(-1,1)+self.thetaW/6)
+
+#         X2 = line*np.cos(self.Theta.reshape(-1,1)-self.thetaW/6)
+#         Y2 = line*np.sin(self.Theta.reshape(-1,1)-self.thetaW/6)
         
-        centerX = np.concatenate([X1,X2,X3,X4,X5,X6],axis=1)
-        centerY = np.concatenate([Y1,Y2,Y3,Y4,Y5,Y6],axis=1)
+#         centerX = np.concatenate([X1,X2],axis=1)
+#         centerY = np.concatenate([Y1,Y2],axis=1)
+
+#         #GEAR 6
+#         thetas = np.linspace(-np.pi/3,np.pi/3,self.N_body).reshape(1,-1)+self.Theta.reshape(-1,1)
+#         RA = self.RA.reshape(-1,1)
+        
+#         X1 = self.R*np.cos(thetas)-RA*np.cos(self.Theta.reshape(-1,1))
+#         Y1 = self.R*np.sin(thetas)-RA*np.sin(self.Theta.reshape(-1,1))
+#         X2 = self.R*np.cos(thetas+np.pi/3)-RA*np.cos(self.Theta.reshape(-1,1)+np.pi/3)
+#         Y2 = self.R*np.sin(thetas+np.pi/3)-RA*np.sin(self.Theta.reshape(-1,1)+np.pi/3)
+#         X3 = self.R*np.cos(thetas-np.pi/3)-RA*np.cos(self.Theta.reshape(-1,1)-np.pi/3)
+#         Y3 = self.R*np.sin(thetas-np.pi/3)-RA*np.sin(self.Theta.reshape(-1,1)-np.pi/3)
+#         X4 = self.R*np.cos(thetas+np.pi*2/3)-RA*np.cos(self.Theta.reshape(-1,1)+np.pi*2/3)
+#         Y4 = self.R*np.sin(thetas+np.pi*2/3)-RA*np.sin(self.Theta.reshape(-1,1)+np.pi*2/3)
+#         X5 = self.R*np.cos(thetas-np.pi*2/3)-RA*np.cos(self.Theta.reshape(-1,1)-np.pi*2/3)
+#         Y5 = self.R*np.sin(thetas-np.pi*2/3)-RA*np.sin(self.Theta.reshape(-1,1)-np.pi*2/3)
+#         X6 = self.R*np.cos(thetas+np.pi)-RA*np.cos(self.Theta.reshape(-1,1)+np.pi)
+#         Y6 = self.R*np.sin(thetas+np.pi)-RA*np.sin(self.Theta.reshape(-1,1)+np.pi)
+        
+        
+#         #GEAR 3
+#         thetas = np.linspace(-np.pi/6,np.pi/6,self.N_body).reshape(1,-1)+self.Theta.reshape(-1,1)
+#         RA = self.RA.reshape(-1,1)
+        
+#         X1 = self.R*np.cos(thetas)-RA*np.cos(self.Theta.reshape(-1,1))
+#         Y1 = self.R*np.sin(thetas)-RA*np.sin(self.Theta.reshape(-1,1))
+#         X2 = self.R*np.cos(thetas+np.pi*2/3)-RA*np.cos(self.Theta.reshape(-1,1)+np.pi*2/3)
+#         Y2 = self.R*np.sin(thetas+np.pi*2/3)-RA*np.sin(self.Theta.reshape(-1,1)+np.pi*2/3)
+#         X3 = self.R*np.cos(thetas-np.pi*2/3)-RA*np.cos(self.Theta.reshape(-1,1)-np.pi*2/3)
+#         Y3 = self.R*np.sin(thetas-np.pi*2/3)-RA*np.sin(self.Theta.reshape(-1,1)-np.pi*2/3)
+#         centerX = np.concatenate([X1,X2,X3],axis=1)
+#         centerY = np.concatenate([Y1,Y2,Y3],axis=1)
+        
+        
+        
         # print(centerX.shape)
 
         # pointX = (self.X.reshape(-1,1)+centerX).reshape(-1)
